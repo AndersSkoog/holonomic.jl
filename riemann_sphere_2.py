@@ -17,16 +17,6 @@ o3 = np.array([[1,0],[0,-1]], dtype=complex)
 #SU2 identity
 I = np.eye(2, dtype=complex)
 
-def mobius_coef_from_sphere_point(SP,angle):
-  x,y,z = SP
-  dotsum=(x*o1)+(y*o2)+(z*o3)
-  U=cos(angle/2)*I - (1j*sin(angle/2)*dotsum)
-  a=U[0][0]
-  b=U[0][1]
-  c=U[1][0]
-  d=U[1][1]
-  return a,b,c,d
-
 
 class riemann_sphere_coord:
 
@@ -117,9 +107,20 @@ class riemann_sphere_coord:
   @property
   def south_d(self): return np.array([0.0,0.0,-1.0)]) if self.at_inf else np.array(self._x,-self._y,-self._z)
 
+  @property
+  def rot_axis(self):
+    N=np.array([0.0,0.0,1.0])
+    S=np.array([self.x,self.y,self.z])
+    u=np.cross(N,S)/np.linalg.norm(np.cross(N,S))
+    v=np.cross(N,u)
+    return u
 
-  def mobius_coef(self,angle):
-    x,y,z = self.x,self.y,self.z
+  @property
+  def mobius_coef(self):
+    N=np.array([0.0,0.0,1.0])
+    S=np.array([self.x,self.y,self.z])
+    x,y,z = self.rot_axis
+    angle = acos(np.dot(N,S))
     dotsum=(x*o1)+(y*o2)+(z*o3)
     U=cos(angle/2)*I - (1j*sin(angle/2)*dotsum)
     a=U[0][0]
@@ -128,10 +129,9 @@ class riemann_sphere_coord:
     d=U[1][1]
     return a,b,c,d
 
-  def mobius_trans_rot(self,c:complex):
-    SP=np.array([self.x,self.y,self.z])
-    a,b,c,d = mobius_coef_from_sphere_point(SP,#we need to find the rotation angle) is this the angle between the north pole and SP ?
-    return ((c*a)+b)/((c*c)+d)
+  def mobius_trans_rot(self,z:complex):
+    a,b,c,d = self.mobius_coef
+    return ((z*a)+b)/((z*c)+d)
 
 
 
