@@ -26,7 +26,16 @@ def rot_mobius_coef(z:complex):
   b=z/norm
   c=-np.conjugate(z)/norm
   d=1/norm
-  return a,b,c,d
+  return a,b,c,d()
+
+def inv_stereographic_proj(z:complex):
+  m2 = abs(z)**2
+  d=1+m2
+  x=(2*z.real)/d
+  y=(2*z.imag)/d
+  z=(m2-1)/d
+  return x,y,z
+
 
 class riemann_sphere_coord:
 
