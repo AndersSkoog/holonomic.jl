@@ -26,7 +26,7 @@ def rot_mobius_coef(z:complex):
   b=z/norm
   c=-np.conjugate(z)/norm
   d=1/norm
-  return a,b,c,d()
+  return a,b,c,d
 
 def inv_stereographic_proj(z:complex):
   m2 = abs(z)**2
@@ -34,8 +34,7 @@ def inv_stereographic_proj(z:complex):
   x=(2*z.real)/d
   y=(2*z.imag)/d
   z=(m2-1)/d
-  return x,y,z
-
+  return np.array([x,y,z])
 
 class riemann_sphere_coord:
 
@@ -59,7 +58,7 @@ class riemann_sphere_coord:
     return riemann_sphere_coord(theta,phi)
 
   @property
-  def at_inf: return np.isclose(self.z,1.0,MIN_VAL,MIN_VAL)
+  def at_inf(self): return np.isclose(self.z,1.0,MIN_VAL,MIN_VAL)
 
   @property
   def on_equator(self): return np.isclose(self.z,0.0,MIN_VAL,MIN_VAL)
@@ -114,25 +113,25 @@ class riemann_sphere_coord:
   def north_a(self): return np.array([inf,inf,inf]) if self.at_inf else np.array([self._x,self._y,self._z])
 
   @property
-  def south_a(self): return np.array([0.0,0.0,-1.0)]) if self.at_inf else np.array(self._x,self._y,-self._z)
+  def south_a(self): return np.array([0.0,0.0,-1.0]) if self.at_inf else np.array([self._x,self._y,-self._z])
 
   @property
   def north_b(self): return np.array([inf,inf,inf]) if self.at_inf else np.array([-self._x,self._y,self._z])
 
   @property
-  def south_b(self): return np.array([0.0,0.0,-1.0)]) if self.at_inf else np.array(-self._x,self._y,-self._z)
+  def south_b(self): return np.array([0.0,0.0,-1.0]) if self.at_inf else np.array([-self._x,self._y,-self._z])
 
   @property
   def north_c(self): return np.array([inf,inf,inf]) if self.at_inf else np.array([-self._x,-self._y,self._z])
 
   @property
-  def south_c(self): return np.array([0.0,0.0,-1.0)]) if self.at_inf else np.array(-self._x,self._y,-self._z)
+  def south_c(self): return np.array([0.0,0.0,-1.0]) if self.at_inf else np.array([-self._x,self._y,-self._z])
 
   @property
   def north_d(self): return np.array([inf,inf,inf]) if self.at_inf else np.array([self._x,-self._y,self._z])
 
   @property
-  def south_d(self): return np.array([0.0,0.0,-1.0)]) if self.at_inf else np.array(self._x,-self._y,-self._z)
+  def south_d(self): return np.array([0.0,0.0,-1.0]) if self.at_inf else np.array([self._x,-self._y,-self._z])
 
   @property
   def zeta_rot_mobius_coef(self):

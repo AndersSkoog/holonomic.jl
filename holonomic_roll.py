@@ -1,45 +1,15 @@
 import numpy as np
 from constants import MIN_VAL
-from lib import periodic_array, non_dup_reverse_array
-from math import pi, cos, sin, tau
-from S2 import antipode
 
+def s2_to_r3(theta,phi):
+  pr=np.cos(phi)
+  x,y,z = pr*np.cos(theta),pr*np.sin(theta),np.sin(phi)
+  return np.array([x,y,z])
 
-def normalize(v):
-  n = np.linalg.norm(v)
-  if n < MIN_VAL: return np.array([1.0, 0.0, 0.0])
-  return v / n
-
-
-def s2_to_r3(r,theta,phi):
-  x = r * np.sin(phi) * np.cos(theta)
-  y = r * np.sin(phi) * np.sin(theta)
-  z = r * np.cos(phi)
-  return normalize(np.array([x,y,z]))
-
-
-def quat_from_axis_angle(axis, angle):
-    axis = normalize(axis)
-    w,s = np.cos(angle/2),np.sin(angle/2)*axis
-    i,j,k = s[0],s[1],s[2]
-    return w,i,j,k
-
-def quat_mult(q1, q2):
-    #print("q1",q1)
-    #print("q2",q2)
-    w1,i1,j1,k1 = q1
-    w2,i2,j2,k2 = q2
-    w3 = (w1*w2) - (i1*i2) - (j1*j2) - (k1*k2)
-    i3 = (w1*i2) + (i1*w2) + (j1*k2) - (k1*j2)
-    j3 = (w1*j2) - (i1*k2) + (j1*w2) + (k1*i2)
-    k3 = (w1*k2) - (i1*j2) + (j1*i2) + (k1*w2)
-    return w3,i3,j3,k3
-
-def quat_rotate(q, v):
-    # Rotate vector v by quaternion q
-    vq = (0, v[0], v[1], v[2])
-    q_conj = (q[0], -q[1], -q[2], -q[3])
-    return quat_mult(q, quat_mult(vq, q_conj))
+def z_from_orient(o:(float,float,float,float),R=1.0):
+  v = np.array([0.0,0.0,1.0])
+  rot_v = quat_rotate(o,v)
+  return R * rot_v[3] if R != 1.0 else rot_v[3]
 
 
 def random_closed_sphere_curve(n=360, k=5, r=0.1, seed=None):
@@ -57,60 +27,49 @@ def random_closed_sphere_curve(n=360, k=5, r=0.1, seed=None):
         theta += A_theta * np.cos(i*t + phase_theta) + B_theta * np.sin(i*t + phase_theta)
         phi   += A_phi   * np.cos(i*t + phase_phi)   + B_phi   * np.sin(i*t + phase_phi)
 
-
     return theta, phi
 
-def rolltranslation(r, theta, phi, i, o, p):
-    n = len(theta)
-    prev_i = i-1 if i>0 else -1
-    A = s2_to_r3(r,theta[prev_i], phi[prev_i]) if i > 0 else np.array([0,0,-R])
-    B = s2_to_r3(r,theta[i],phi[i])
-    axis_body = normalize(np.cross(A, B))
-    angle = np.arccos(np.clip(np.dot(A, B), -1.0, 1.0))
-    o_inc = quat_from_axis_angle(axis_body, angle)
-    o_new = quat_mult(o, o_inc)
-    axis_world = quat_rotate(o, axis_body)[1:]
-    d = np.array([0.0, 0.0, -1.0])
-    move_dir = np.cross(np.asarray(axis_world), d)
-    norm_dir = np.linalg.norm(move_dir)
-    if norm_dir < MIN_VAL:
-        disp = np.zeros(3)
-    else:
-        move_dir = move_dir / norm_dir
-        disp = (r * angle) * move_dir
-    p_new = p + disp
-    return p_new, o_new
 
-
-def z_from_orient(o:(float,float,float,float),R=1.0):
-  v = np.array([0.0,0.0,1.0])
-  rot_v = quat_rotate(o,v)
-  return R * rot_v[3] if R != 1.0 else rot_v[3]
-
-
-def make_closed(pts):
-    pts = np.array(pts)
-    drift = pts[-1] - pts[0]
-    n = len(pts)
-    corrected = []
-    for i in range(n):
-      t = i / (n - 1)
-      corrected.append(pts[i] - t * drift)
-    return corrected
-
-
-def boundaryless_disc(z: complex):
-  if abs(z) <= 1: return np.array([z.real,z.imag,0.0])
+def rolltranslation(sphere_curve,index,contact,R):
+  r=1.0
+  #index_next = index + 1 if index < len(sphere_curve[0])-1 else 0
+  p1 = s2_to_r3(sphere_curve[0][index],sphere_curve[1][index])
+  p2 = s2_to_r3(sphere_curve[0][index+1],sphere_curve[1][index+1])
+  ang = np.arccos(np.clip(np.dot(p1,p2), -1.0, 1.0))
+  rot_axis = np.cross(p1,p2) / np.linalg.norm(np.cross(p1,p2))
+  x,y,z = rot_axis
+  c,s,C = np.cos(ang),np.sin(ang),1-np.cos(ang)
+  R_inc = np.array([
+        [c+x*x*C,x*y*C-z*s,x*z*C+y*s],
+        [y*x*C+z*s,c+y*y*C,y*z*C-x*s],
+        [z*x*C-y*s,z*y*C+x*s,c+z*z*C]
+    ])
+  R_new = R @ R_inc
+  u,v,n = R_new[:, 0],R_new[:, 1],R_new[:, 2]
+  d = np.array([0.0, 0.0, -1.0])
+  move_dir = np.cross(n, d)
+  move_dir_norm = np.linalg.norm(move_dir)
+  if move_dir_norm < MIN_VAL:
+    disp = np.zeros(3)
   else:
-    z1 = (-1)/np.conj(z)
-    return np.array([z1.real,z1.imag,0.0])
+    move_dir = move_dir / move_dir_norm
+    disp = (r * ang) * move_dir
+
+  contact_new = contact + disp
+  return contact_new,R_new
 
 
+def inital_R(sphere_curve):
+ sc=sphere_curve
+ p1,p2 = s2_to_r3(sc[0][0],sc[0][1]),s2_to_r3(sc[1][0],sc[1][1])
+ n1,n2 = p1 / np.linalg.norm(p1), p2 / np.linalg.norm(p2)
+ t = n2 - n1
+ u = t - np.dot(t,n1) * n1
+ v = np.cross(n1,u)
+ return np.column_stack((u,v,n1))
 
 
-
-
-
+"""
 if __name__ == "__main__":
   import matplotlib.pyplot as plt
   from mpl_toolkits.mplot3d import Axes3D
@@ -176,7 +135,7 @@ if __name__ == "__main__":
   #ax2.plot(sx,sy,sz,'-b',linewidth=1)
   plt.show()
 
-
+"""
 
 
 

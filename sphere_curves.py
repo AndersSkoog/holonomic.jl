@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def random_closed_sphere_curve_dirs(n=360, k=5, seed=None):
+def random_closed_sphere_curve(n=360, k=5, seed=None):
     rng = np.random.default_rng(seed)
     t = np.linspace(0, 2*np.pi, n, endpoint=False)
     theta = np.zeros(n)
@@ -19,8 +19,9 @@ def random_closed_sphere_curve_dirs(n=360, k=5, seed=None):
 
     return theta,phi
 
+"""
 def random_closed_sphere_curve(n=360, k=5, radius=1.0, seed=None):
-    theta,phi = random_closed_sphere_curve_dirs
+    theta,phi = random_closed_sphere_curve
     print(theta)
     print(phi)
     # Convert to Cartesian coordinates on the sphere
@@ -30,7 +31,6 @@ def random_closed_sphere_curve(n=360, k=5, radius=1.0, seed=None):
     pts = [np.array(x[i],y[i],z[i]) for i in range(n)]
     dirs = [(theta[i],phi[i]) for i in range(n)]
     return pts,dirs
-
 
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
@@ -44,7 +44,7 @@ if __name__ == "__main__":
     ax.plot(xs, ys, zs, 'b-', linewidth=1)
     ax.set_aspect('equal')
     plt.show()
-
+"""
 
 
 
