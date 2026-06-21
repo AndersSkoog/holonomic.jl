@@ -74,9 +74,9 @@ module Primitives
     toVec(v::B³) = vec3(v.r * (cos(v.φ) * cos(v.θ)),v.r * (cos(v.φ) * sin(v.θ)),v.r * sin(v.φ))
     toVec(v::Complex) = vec2(real(v),imag(v))
 
-    toArray(v::vec2) = [v.x,v.y]
-    toArray(v::vec3) = [v.x,v.y,v.z]
-    toArray(v::vec4) = [v.x,v.y,v.z,v.w]
+    toArray(v::vec3) = [v.x,v.y,v.z])
+    toArray(v::vec2) = [v.x,v.y])
+    toArray(v::vec4) = [v.x,v.y,v.z,v.w])
     toArray(v::S¹) = toArray(toVec(v))
     toArray(v::B²) = toArray(toVec(v))
     toArray(v::S²) = toArray(toVec(v))

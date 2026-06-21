@@ -2,7 +2,8 @@ module Holonomy
 using LinearAlgebra
 using .Primitives:S²,toVec,vec3,vec2,toArray
 using .Orientation:SO3
-export ArcS², ArcRot, SphereCurveRollData
+using .Transform:MobiusRotCoef, MobiusTrans
+using .Projection:stereographic, inv_stereographic
 
     function toS²(v::Array{Float})
         x,y,z = v[0],v[1],v[2]
@@ -33,8 +34,8 @@ export ArcS², ArcRot, SphereCurveRollData
         R_new = R * R_inc
         n = [R_new[1,3], R_new[2,3], R_new[3,3]]
         d = [0.0,0.0,-1.0]
-        move_dir = cross3(n, d)
-        mdn = norm3(move_dir)
+        move_dir = cross(n, d)
+        mdn = norm(move_dir)
 
         if mdn < 1e-12
             disp = [0.0, 0.0, 0.0]
@@ -76,14 +77,55 @@ export ArcS², ArcRot, SphereCurveRollData
         return curveC, curveO, curveT
     end
 
+    function cap_circle(sphere_point::Array{Float})
+        s2 = toS²(sphere_point)
+        n = [0.0,0.0,1.0]
+        s = sphere_point
+        c = (4/5)*s
+        r = sin(pi/5)
+        theta=s2.θ
+        phi=s2.φ
+        c1=r*sin(theta)
+        c2=r*sin(phi)*cos(theta)
+        c3=r*cos(theta)
+        c4=r*sin(phi)*sin(theta)
+        c5=r*cos(phi)
+        u=(-c1,c3)
+        v=(-c2,-c4,c5)
+        pts = []
+        for t in range(0, 2π, length=360)
+          pt = c + [u[0]*cos(t) + v[0]*sin(t),u[1]*cos(t)+v[1]*sin(t),v[2]*sin(t)]
+          pts.append!(pt)
+        end
+        return pts
+    end
+
+
+
     function HolonomicView3(sphere_curve::Array{S²},seli::Int)
+      fov = sin(pi/5)
+      gam = acos(4/5)
+      cap_scale = tan(gam/2)
+      npole = [0.0,0.0,1.0]
       curveC, curveO, curveT = SphereCurveRollData(sphere_curve)
       sel=Complex(curveC[seli].x,curveC[seli].y)
       a,b,c,d = MobiusRotCoef(sel)
-      
-
-      
-    
+      sphere_point = inv_stereographic_proj(sel)
+      persp_point = 2 * sphere_point
+      viewpts = []
+      transpts = []
+      circ = cap_circle(sphere_point)
+      p(θ) = cos(γ) * c + sin(γ) * (cos θ * u + sin θ * v)
+      for i in 1:length(curve)-2
+        p = curveC[i]
+        x,y = p[0],p[1]
+        scaled_z = Complex(x,y) * cap_scale
+        trans_z=MobiusTrans(pz,(a,b,c,d))
+        transpts.append!(trans_z)
+        vpt = inv_stereographic(trans_z)
+        viewpts.append!(vpt)
+      end
+      return (vp=viewpts,pp=persp_point,sp=sphere_point,tp=transpts)
     end
 
 
