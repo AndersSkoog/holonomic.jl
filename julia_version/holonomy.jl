@@ -59,22 +59,23 @@ using .Projection:stereographic, inv_stereographic
     function SphereCurveRollData(spherecurve::Array{S²})
         prev_contact = vec3(0.0, 0.0, 0.0)
         prev_R = initial_R(curve)
-        curveC = vec3[] #planar contact points of rolling sphere
-        curveO = SO3[]  #moving frame
-        curveT = vec3[] #torsion curve  
-
-        for i in 1:length(curve)-2
-            contact, R = rolltranslation(spherecurve,i,prev_contact,prev_R)
-            tor_z = R.mtx * [0.0, 0.0, 1.0]
-            tor_pt = vec3(contact.x,contact.y,tor_z[3])
-            push!(curveC, contact)
-            push!(curveO, R)
-            push!(curveT, tor_pt)
-            prev_contact = contact
+        contact = vec3[] #planar contact points of rolling sphere
+        frames = SO3[]  #moving frame
+        #curveT = vec3[] #torsion curve  
+        for i in 1:length(spherecurve)-2
+            p, R = RollTrans(spherecurve,i,prev_contact,prev_R)
+            append!(contact,p)
+            append!(frames,R)
+            #tor_z = R.mtx * [0.0, 0.0, 1.0]
+            #tor_pt = vec3(contact.x,contact.y,tor_z[3])
+            #push!(curveC, contact)
+            #push!(curveO, R)
+            #push!(curveT, tor_pt)
+            prev_contact = p
             prev_R = R
         end
-
-        return curveC, curveO, curveT
+        return (contact=contact,frames=frames)
+        #return (contact=curveC,orient=curveO,torsion=curveT)
     end
 
     function cap_circle(sphere_point::Array{Float})
@@ -102,13 +103,13 @@ using .Projection:stereographic, inv_stereographic
 
 
 
-    function HolonomicView3(sphere_curve::Array{S²},seli::Int)
+    function HolonomicView3(spherecurve::Array{S²},seli::Int)
       fov = sin(pi/5)
       gam = acos(4/5)
       cap_scale = tan(gam/2)
       npole = [0.0,0.0,1.0]
-      curveC, curveO, curveT = SphereCurveRollData(sphere_curve)
-      sel=Complex(curveC[seli].x,curveC[seli].y)
+      rd = SphereCurveRollData(spherecurve)
+      sel=Complex(rd.contact[seli][0],rd.contact[seli][1])
       a,b,c,d = MobiusRotCoef(sel)
       sphere_point = inv_stereographic_proj(sel)
       persp_point = 2 * sphere_point
@@ -125,8 +126,50 @@ using .Projection:stereographic, inv_stereographic
         vpt = inv_stereographic(trans_z)
         viewpts.append!(vpt)
       end
-      return (vp=viewpts,pp=persp_point,sp=sphere_point,tp=transpts)
+      return (vpts=viewpts,ppt=persp_point,spt=sphere_point,tpts=transpts,cpts=contact,orient=orient,torpts=torsion)
     end
+
+    §
+
+
+
+
+
+
+
+    function TorsionAngle(torsioncurve,index)
+      T = torsioncurve
+      p0,p1,p2,p3 = 
+    
+    
+    end
+
+
+    function HopfLink(S,torsioncurve,index)
+    
+    
+    
+    end
+    
+    
+    function HolonomicView4(sphere_curve::Array{S²},seli::Int)
+      data = HolonomicView3(sphere_curve,seli)
+      S = data.spt
+    
+
+
+      vpts,ppt,cpts,orient,torpts = data.vpts,data.ppt,data.cpts,data.orient,data.torpts
+      
+
+    
+
+    
+    
+    
+    end
+
+
+
 
 
 

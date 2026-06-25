@@ -1,6 +1,6 @@
 module Primitives
 
-    export S¹, B², S², B³, C², vec2, vec3, vec4, toVec, toArray
+    export S¹, B², S², B³,CP¹,C²,vec2, vec3, vec4, toVec, toArray
 
     struct S¹
         θ::Float
@@ -27,6 +27,19 @@ module Primitives
             new(mod(θ, 2π), mod(φ, 2π))
         end
     end
+
+
+    struct CP¹
+      z::Complex
+      function CP¹(θ::Float,φ::Float)
+        z = exp(φ*im) * tan(θ/2)
+        new(z)
+      end
+    end
+
+
+
+
 
     struct B³
         r::Float
