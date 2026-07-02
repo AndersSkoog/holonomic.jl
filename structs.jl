@@ -47,8 +47,8 @@ end
 
 #array types
 struct S3
-  fiber1::Array{C2}
-  fiber2::Array{C2}
+  fiber1::Vector{C2}
+  fiber2::Vector{C2}
 end
 
 #composite types
@@ -56,7 +56,7 @@ struct Holomorph2
   index::Int64
   refpoint::ComplexF64
   torangle::Float64
-  result::Array{ComplexF64}
+  result::Vector{ComplexF64}
 end
 
 
