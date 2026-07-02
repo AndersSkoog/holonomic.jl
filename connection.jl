@@ -14,7 +14,7 @@ function roll_contact_point(prev::ComplexF64,v::S2)
     return Complex(x,y)
 end
 
-function init_roll_frame_SO3(sphere_curve::Array{S2})
+function init_roll_frame_SO3(sphere_curve::VectorS2})
     p1 = toArray(sphere_curve[length(sphere_curve)])
     p2 = toArray(sphere_curve[1])
     t = p2 .- p2
@@ -42,7 +42,7 @@ function torsion_pt(contact::ComplexF64,frame::SO3)
   return [x,y,z]
 end
 
-function torsion_angle(contacts::Array{ComplexF64},frames::Array{SO3},ind::Int64)
+function torsion_angle(contacts::Vector{ComplexF64},frames::Vector{SO3},ind::Int64)
   L = length(frames)
   Li = L-4
   diff = abs(ind-Li)
@@ -62,7 +62,7 @@ function torsion_angle(contacts::Array{ComplexF64},frames::Array{SO3},ind::Int64
   return τ
 end
 
-function torsion_angles(contacts::Array{ComplexF64},frames::Array{SO3})
+function torsion_angles(contacts::Vector{ComplexF64},frames::Vector{SO3})
   return [torsion_angle(contacts,frames,ind) for ind in 1:length(contacts)]
 end
 
@@ -73,17 +73,17 @@ end
 
 
 struct RollConnection
-  contacts::Array{ComplexF64}
-  framesSU2::Array{SU2}
-  framesSO3::Array{SO3}
-  torangles::Array{Float64}
+  contacts::Vector{ComplexF64}
+  framesSU2::Vector{SU2}
+  framesSO3::Vector{SO3}
+  torangles::Vector{Float64}
 end
 
 
 #this is a heavy computation which should only run once for a chosen sphere curve,
 #perhaps can be optimized by making the sphere curve fully evaluated during compile time.
 #perhaps output can be stored in a file so that we dont have to run it each time we adjustments
-function roll_connection(sphere_curve::Array{S2})
+function roll_connection(sphere_curve::Vector{S2})
     prev_contact = 0+0im
     prev_frame_SO3 = init_roll_frame_SO3(sphere_curve)
     prev_frame_SU2 = SU2_from_UnitSpinor(UnitSpinor(sphere_curve[1]))
@@ -107,7 +107,7 @@ end
 
 
 #this is a bit ambigious but is saved for later reference, should probobly be moved to main holonomic.jl file
-function roll_connection_view(contacts::Array{ComplexF64},sel_ind::Int64)
+function roll_connection_view(contacts::Vector{ComplexF64},sel_ind::Int64)
     s = tan(acos(4/5)/2)
     connection = roll_connection(sphere_curve)
     roll_frame = connection.roll_frames[sind].U

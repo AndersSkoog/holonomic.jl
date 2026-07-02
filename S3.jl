@@ -32,7 +32,7 @@ end
 
 
 #ambigious but saved for later reference
-function hopf_link(pts::Array{ComplexF64},frames::Array{SU2},ind::Int64)
+function hopf_link(pts::Vector{ComplexF64},frames::Vector{SU2},ind::Int64)
   F1 = ind > 1 ? frames[ind-1] : init_frame
   F2 = frames[ind]
   K = torsion_su2(F1,F2)
