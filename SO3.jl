@@ -1,10 +1,10 @@
 module SO3
-using .S2
+using StaticArrays
+using .S2:S2
 export SO3, SO3_from_axis_angle
 
-struct SO3
-    R::Matrix{Float64}
-end
+SO3 = SMatrix{3,3,Float64,9}
+
 
 function SO3_from_axis_angle(axis::S2,ang::Float64)
     x,y,z = axis.x,axis.y,axis.z

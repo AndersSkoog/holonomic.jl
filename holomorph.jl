@@ -6,6 +6,15 @@ export Holomorph2
 
 invariant_scale = tan(acos(4/5)/2)
 
+function MobiusRotCoef
+  m = abs2(z)
+  a = 1 / sqrt(1 + m)
+  b = z / sqrt(1 + m)
+  c = -conj(z) / sqrt(1 + m)
+  d = a
+  return (a=a,b=b,c=c,d=d)
+end
+
 struct Holomorph2
   index::Int64
   refpoint::ComplexF64

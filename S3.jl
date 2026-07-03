@@ -1,13 +1,19 @@
 module S3
 using LinearAlgebra
-using .CP1
-using .S2
-using .SU2
-using .Holomorph
+using StaticArrays
+using .R3:R3
+using .SU2:SU2,SU2_from_axis_angle
+using .SO3:SO3, SO3_from_axis_angle
+using .Holomorph:Holomorph2
 
-struct C2
+struct C2 :< FieldVector{2,Complex64}
   z1::ComplexF64
   z2::ComplexF64
+end
+
+struct S3 :< FieldVector{2,Vector{C2}}
+  fiber1::Vector{C2}
+  fiber2::Vector{C2}
 end
 
 function stereo_proj(p::C2)
@@ -19,22 +25,17 @@ function stereo_proj(p::C2)
   return R3(x1 / d,y1 / d,x2 / d)
 end
 
-struct S3
-  fiber1::Vector{C2}
-  fiber2::Vector{C2}
-end
-
 basefiber_xy = [C2(cis(a),0+0im) for a in range(0,2*pi,360)]
 
 function hopf_link(h::Holomorph2, ind::Int64)
   S = InvStereoProj(h.refpoint)
   R = SO3_from_axis_angle(S,h.torangle)
   a = InvStereoProj(h.result[ind])
-  b = R ⊗ a
+  b = R * a #rotate a
   U1 = SU2_from_axis_angle(a,pi)
   U2 = SU2_from_axis_angle(b,pi)
-  fib1 = U1 ⊗ basefiber_xy
-  fib2 = U2 ⊗ basefiber_xy
+  fib1 = U1 * basefiber_xy
+  fib2 = U2 * basefiber_xy
   return S3(fib1,fib2)
 end
 

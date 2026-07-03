@@ -1,6 +1,15 @@
 module S2
+using StaticArrays
 using Random
-using .Core
+using .CP1:CP1Atlas
+export S2,theta,phi,S2_from_angles,random_closed_sphere_curve
+
+struct S2 :< FieldVector{3,Float64}
+    x::Float64
+    y::Float64
+    z::Float64
+end
+
 
 function theta(v::S2)
     return acos(clamp(v.z, -1.0, 1.0))
@@ -16,10 +25,6 @@ function S2_from_angles(θ::Float64,φ::Float64)
     z=sin(φ)
     n = sqrt(x^2 + y^2 + z^2)
     return S2(x/n,y/n,z/n)
-end
-
-function toArray(v::S2)
-    return [v.x,v.y,v.z]
 end
 
 function random_closed_sphere_curve(n::Int64=360, k::Int64=5)
