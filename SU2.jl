@@ -5,8 +5,8 @@ using .S2:S2
 using .Spin:UnitSpinor
 export SU2, su2, I, σx,σy,σz,iσx,iσy,iσz,SU2_from_UnitSpinor,SU2_from_axis_angle,MobiusRotTrans,torsion_su2
 
-SU2 = SMatrix{2,2,ComplexF64,4}
-su2 = SMatrix{2,2,ComplexF64,4}
+const SU2 = SMatrix{2,2,ComplexF64,4}
+const su2 = SMatrix{2,2,ComplexF64,4}
 
 Base.:*(U::SU2, p::C2) = begin
     v = U * [p.z1; p.z2]

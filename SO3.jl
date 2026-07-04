@@ -3,7 +3,7 @@ using StaticArrays
 using .S2:S2
 export SO3, SO3_from_axis_angle
 
-SO3 = SMatrix{3,3,Float64,9}
+const SO3 = SMatrix{3,3,Float64,9}
 
 
 function SO3_from_axis_angle(axis::S2,ang::Float64)
