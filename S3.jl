@@ -1,20 +1,5 @@
 module S3
-using LinearAlgebra
-using StaticArrays
-using .R3:R3
-using .SU2:SU2,SU2_from_axis_angle
-using .SO3:SO3, SO3_from_axis_angle
-using .Holomorph:Holomorph2
-
-struct C2 :< FieldVector{2,Complex64}
-  z1::ComplexF64
-  z2::ComplexF64
-end
-
-struct S3 :< FieldVector{2,Vector{C2}}
-  fiber1::Vector{C2}
-  fiber2::Vector{C2}
-end
+using .Structs:C2,R3,Holomorph2,S3,C2
 
 function stereo_proj(p::C2)
   x1 = real(p.z1)
@@ -56,27 +41,18 @@ function project_hopf_fibration(fibration::Vector{S3})
   return proj_fibers1,proj_fibers2
 end
 
-
-
-
-
-
-
-
-
-
 #ambigious but saved for later reference
-function hopf_link(pts::Vector{ComplexF64},frames::Vector{SU2},ind::Int64)
-  F1 = ind > 1 ? frames[ind-1] : init_frame
-  F2 = frames[ind]
-  K = torsion_su2(F1,F2)
-  P=pts[ind] #selected Complex number returned by Mobius Transform of Roll contact points
-  S=inv_stereo_proj(P) #P converted to S2
-  U1 = SU2(UnitSpinor(S)) # Frame Associated to S2
-  U2 = U1 * exp(K)
-  fib1 = basefiber_xy * U1
-  fib2 = basefiber_xy * U2
-  return S3(fib1,fib2)
-end
+#function hopf_link(pts::Vector{ComplexF64},frames::Vector{SU2},ind::Int64)
+#  F1 = ind > 1 ? frames[ind-1] : init_frame
+#  F2 = frames[ind]
+#  K = torsion_su2(F1,F2)
+#  P=pts[ind] #selected Complex number returned by Mobius Transform of Roll contact points
+#  S=inv_stereo_proj(P) #P converted to S2
+#  U1 = SU2(UnitSpinor(S)) # Frame Associated to S2
+#  U2 = U1 * exp(K)
+#  fib1 = basefiber_xy * U1
+#  fib2 = basefiber_xy * U2
+#  return S3(fib1,fib2)
+#end
 
 end

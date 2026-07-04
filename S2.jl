@@ -1,15 +1,7 @@
 module S2
-using StaticArrays
 using Random
-using .CP1:CP1Atlas
-export S2,theta,phi,S2_from_angles,random_closed_sphere_curve
-
-struct S2 :< FieldVector{3,Float64}
-    x::Float64
-    y::Float64
-    z::Float64
-end
-
+using .Structs:S2,CP1Atlas
+export theta,phi,S2_from_angles,random_closed_sphere_curve,StereoProj,InvStereoProj
 
 function theta(v::S2)
     return acos(clamp(v.z, -1.0, 1.0))
@@ -47,7 +39,23 @@ function random_closed_sphere_curve(n::Int64=360, k::Int64=5)
     end
 
     [S2_from_angles(θ[j],φ[j]) for j in eachindex(θ)]
-    end
+end
+
+function StereoProj(v::S2)
+  ζ = (v.x+v.y*im) / (1-v.z)
+  ξ = (v.x-v.y*im) / (1+v.z)
+  return CP1Atlas(ζ,ξ)
+end
+
+function InvStereoProj(v::ComplexF64)
+  m = abs2(v)
+  x = (2*v.real)/(1+m)
+  y = (2*v.imag)/(1+m)
+  z = (1-m)/(1+m)
+  n = sqrt(x^2 + y^2 + z^2)
+  return S2(x/n,y/n,z/n)
+end
+
 
 end
 

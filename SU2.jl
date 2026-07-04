@@ -1,17 +1,6 @@
 module SU2
-using StaticArrays
-using .C2:C2
-using .S2:S2
-using .Spin:UnitSpinor
-export SU2, su2, I, σx,σy,σz,iσx,iσy,iσz,SU2_from_UnitSpinor,SU2_from_axis_angle,MobiusRotTrans,torsion_su2
-
-const SU2 = SMatrix{2,2,ComplexF64,4}
-const su2 = SMatrix{2,2,ComplexF64,4}
-
-Base.:*(U::SU2, p::C2) = begin
-    v = U * [p.z1; p.z2]
-    C2(v[1], v[2])
-end
+using .Structs:SU2,su2,UnitSpinor,S2
+export I, σx,σy,σz,iσx,iσy,iσz,SU2_from_UnitSpinor,SU2_from_axis_angle,MobiusRotTrans,torsion_su2
 
 I   = SU2(ComplexF64[1 0; 0 1])
 σx  = SU2(ComplexF64[0 1; 1im 0])
