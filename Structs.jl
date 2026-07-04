@@ -1,4 +1,5 @@
 module Structs
+export UnitQuaternion CP1Atlas, R3, C2, S3, UnitSpinor, S2, SO3, SU2, su2, Holomorph2, RollConnection
 
 struct UnitQuaternion <: FieldVector{4,Float64}
   w::Float64
