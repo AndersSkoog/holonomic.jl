@@ -1,7 +1,28 @@
 module Connection
 using LinearAlgebra
 using .Structs:S2,SO3,SU2,RollConnection,UnitSpinor,C2
-export roll_contact_point, init_roll_frame_SO3, roll_frame_SO3, roll_frame_SU2,roll_connection,roll_connection_view
+export roll_contact_point, init_roll_frame_SO3, roll_frame_SO3, roll_frame_SU2,roll_connection,roll_transition
+
+
+function roll_transition(C::Vector{S2},index::Int64,prev_trace::ComplexF64,prev_R::SO3)
+  len = length(C)
+  p1 = C[mod(index,len)]
+  p2 = C[mod(index + 1,len)]
+  ang = acos(dot(p1,p2))
+  axis = cross(p1,p2)
+  c,s,C = cos(ang),sin(ang),1-cos(ang)
+  R_inc = SO3(axis,ang)
+  R_new = prev_R * R_inc
+  u = [R_new[1,1],R_new[1,2],R_new[1,3]]
+  v = [R_new[2,1],R_new[2,2],R_new[2,3]]
+  n = [R_new[3,1],R_new[3,2],R_new[3,3]]
+  d = [0.0,0.0,-1.0]
+  move_dir = cross(n,d)
+  move_norm = norm(move_dir)
+  disp = move_norm < 1e-12 ? [0.0,0.0,0.0] : ang * (move_dir / move_norm)
+  trace_new = prev_trace + ComplexF64(disp[1],disp[2])
+  return trace_new,R_new
+end
 
 function roll_contact_point(prev::ComplexF64,v::S2)
     θ,φ = theta(v),phi(v)
@@ -11,17 +32,17 @@ function roll_contact_point(prev::ComplexF64,v::S2)
     return Complex(x,y)
 end
 
-function init_roll_frame_SO3(sphere_curve::Vector{S2})
-    p1 = toArray(sphere_curve[length(sphere_curve)])
-    p2 = toArray(sphere_curve[1])
-    t = p2 .- p2
-    u = t .- dot(t,p1) .* p1
+function init_roll_frame_SO3(C::Vector{S2})
+    p1 = C[length(C)]
+    p2 = C[1]
+    t = p2 - p2
+    u = t - dot(t,p1) * p1
     v = np.cross(p1,u)
     R = [p1[1] p1[2] p2[3]; u[1] u[2] u[3]; v[1] v[2] v[3]]
     return SO3(R)
 end
 
-funtion roll_frame_SO3(p1::S2,p2::S2,prev::SO3)
+function roll_frame_SO3(p1::S2,p2::S2,prev::SO3)
     pa1 = [p1.x,p1.y,p1.z]
     pa2 = [p2.x,p2.y,p2.z]
     ang = acos(clamp(dot(pa1,pa2), -1.0, 1.0))
@@ -65,12 +86,9 @@ end
 
 
 function roll_frame_SU2(prev::SU2,v::S2)
-    return prev.U * SU2(UnitSpinor(v)).U
+    return prev * SU2(UnitSpinor(v))
 end
 
-#this is a heavy computation which should only run once for a chosen sphere curve,
-#perhaps can be optimized by making the sphere curve fully evaluated during compile time.
-#perhaps output can be stored in a file so that we dont have to run it each time we adjustments
 function roll_connection(sphere_curve::Vector{S2})
     prev_contact = 0+0im
     prev_frame_SO3 = init_roll_frame_SO3(sphere_curve)
