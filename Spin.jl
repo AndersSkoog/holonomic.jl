@@ -1,4 +1,5 @@
 module Spin
+using .S2:theta,phi,S2
 using .Structs:UnitSpinor
 export UnitSpinor_project, UnitSpinor_from_S2
 
