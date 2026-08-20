@@ -138,7 +138,6 @@ function ConeCircle(
         center +
         cos(t) * r * u +
         sin(t) * r * v
-
         for t in range(
             0,
             2π,
