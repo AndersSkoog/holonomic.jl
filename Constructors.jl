@@ -77,7 +77,7 @@ function StereoProj(v::S2)
   x,y,z = v[1],v[2],v[3]
   ζ = (v.x+v.y*im) / (1-v.z)
   ξ = (v.x-v.y*im) / (1+v.z)
-  return CP1Atlas(ζ,ξ)
+  return ζ,ξ
 end
 
 function InvStereoProj(v::ComplexF64)
