@@ -92,8 +92,8 @@ end
 # ============================================================
 
 function SpherePlane(θ::Float64,φ::Float64)
-    u = S2(-sin(θ),cos(θ),0.0)
-    v = S2(-(sin(φ) * cos(θ)),-(sin(φ) * sin(θ)),cos(φ))
+    u = R3(-sin(θ),cos(θ),0.0)
+    v = R3(-(sin(φ) * cos(θ)),-(sin(φ) * sin(θ)),cos(φ))
     return u, v
 end
 
@@ -136,11 +136,11 @@ end
 # Stereographic projection
 # ============================================================
 
-function StereoProj(v::S2)
+function StereoProj(v::S2) :: Tuple{ComplexF64,ComplexF64}
     x, y, z = v
     ζ = (x + y * im) / (1 - z)
     ξ = (x - y * im) / (1 + z)
-    return ζ, ξ
+    return (ζ, ξ)
 end
 
 
@@ -158,7 +158,7 @@ end
 # Random closed sphere curve
 # ============================================================
 
-function random_closed_sphere_curve(n::Int = 360,h::Int = 5)
+function random_closed_sphere_curve(n::Int = 360,h::Int = 5) :: Vector{Tuple{Float64,Float64}}
     t = range(0,2π,length = n + 1)
     θ = zeros(Float64, n)
     φ = zeros(Float64, n)
@@ -187,7 +187,7 @@ end
 # Only computes the transform for one n.
 # ============================================================
 
-function HolomorphicTransform(conn::SphereConnection,n::Int)
+function HolomorphicTransform(conn::SphereConnection,n::Int) :: Vector{ComplexF64}
     v = abs(conn.D[n])<=1 ? conn.D[n] : 1/conj(conn.D[n])
     m = abs2(v)
     dnum = sqrt(1 + m)
@@ -390,7 +390,7 @@ end
 # Convert S2 curve to coordinate arrays
 # ============================================================
 
-function xyz(curve::Vector{S2})
+function xyz(curve::Vector{S2}) :: Tuple{Vector{Float64},Vector{Float64},Vector{Float64}}
     x = [p[1] for p in curve]
     y = [p[2] for p in curve]
     z = [p[3] for p in curve]
