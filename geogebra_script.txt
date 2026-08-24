@@ -5,9 +5,9 @@ O=(0,0,0)
 N=(0,0,1)
 sphere=Sphere(O,1)
 
-r_1 = Slider(0,1,0.01)
+r_1 = Slider(-5,5,0.01)
 a_1 = Slider(0,2pi,2pi/360)
-r_2 = Slider(0,1,0.01)
+r_2 = Slider(-5,5,0.01)
 a_2 = Slider(0,2pi,2pi/360)
 
 # --- disc samples ---
@@ -25,7 +25,7 @@ m_2 = abs(z_2)^2
 z_2s = scale * (px_2 + py_2*i)
 m_2s = abs(z_2s)^2
 
-# --- Möbius frame from S_1 ---
+# --- Möbius coefs from S_1 ---
 a = 1 / sqrt(1 + m_1)
 b = z_1 / sqrt(1 + m_1)
 c = -conjugate(z_1) / sqrt(1 + m_1)

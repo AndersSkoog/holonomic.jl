@@ -4,69 +4,32 @@ using Random
 using GLMakie
 include("Constructors.jl")
 
-k = 100
+contact_coords = random_closed_sphere_curve()
 
-contact_coords =
-    random_closed_sphere_curve()
-
-conn =
-    ConstructConnection(
-        contact_coords,
-        k
-    )
+k = lastindex(contact_coords)
+conn = ConstructConnection(contact_coords,k)
 
 # ------------------------------------------------------------
 # Contact curve
 # ------------------------------------------------------------
-
-contact_curve = S2[
-    S2_from_angles(
-        c[1],
-        c[2]
-    )
-    for c in contact_coords
-]
-
+contact_curve = S2[S2_from_angles(c[1],c[2])for c in contact_coords]
 xs_contact,
 ys_contact,
 zs_contact = xyz(contact_curve)
-
 # ------------------------------------------------------------
 # Development
 # ------------------------------------------------------------
-
 dev_curve = conn.D
-
-xs_dev = [
-    z.re
-    for z in dev_curve
-]
-
-ys_dev = [
-    z.im
-    for z in dev_curve
-]
-
+xs_dev = [z.refor z in dev_curve]
+ys_dev = [z.imfor z in dev_curve]
 zs_dev = zeros(Float64, length(dev_curve))
 
 # ============================================================
 # Initial selected transformation
 # ============================================================
-
-n0 = 1
-
-trans0 =
-    HolomorphicTransform(
-        conn,
-        n0
-    )
-
-H30,
-circle0 =
-    Holomorph3(
-        conn,
-        n0
-    )
+n = 1
+trans =HolomorphicTransform(conn,n)
+H3,circle =Holomorph3(conn,n)
 
 # ------------------------------------------------------------
 # Dynamic transformed-development data
