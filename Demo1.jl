@@ -12,7 +12,7 @@ conn = ConstructConnection(contact_coords,k)
 # ------------------------------------------------------------
 # Contact curve
 # ------------------------------------------------------------
-contact_curve = S2[S2_from_angles(c[1],c[2])for c in contact_coords]
+contact_curve = S2[S2_from_angles(c[1],c[2]) for c in contact_coords]
 xs_contact,
 ys_contact,
 zs_contact = xyz(contact_curve)
@@ -20,40 +20,40 @@ zs_contact = xyz(contact_curve)
 # Development
 # ------------------------------------------------------------
 dev_curve = conn.D
-xs_dev = [z.refor z in dev_curve]
-ys_dev = [z.imfor z in dev_curve]
+xs_dev = [z.re for z in dev_curve]
+ys_dev = [z.im for z in dev_curve]
 zs_dev = zeros(Float64, length(dev_curve))
 
 # ============================================================
 # Initial selected transformation
 # ============================================================
 n = 1
-trans =HolomorphicTransform(conn,n)
+trans =HolomorphicTransform2(conn,n)
 H3,circle =Holomorph3(conn,n)
 
 # ------------------------------------------------------------
 # Dynamic transformed-development data
 # ------------------------------------------------------------
 
-trans_x = Observable([z.refor z in trans0])
-trans_y = Observable([z.imfor z in trans0])
-trans_z = Observable(zeros(Float64, length(trans0)))
+trans_x = Observable([z.re for z in trans])
+trans_y = Observable([z.im for z in trans])
+trans_z = Observable(zeros(Float64, length(trans)))
 
 # ------------------------------------------------------------
 # Dynamic lifted curve
 # ------------------------------------------------------------
 
-holo_x = Observable([p[1]for p in H30])
-holo_y = Observable([p[2]for p in H30])
-holo_z = Observable([p[3]for p in H30])
+holo_x = Observable([p[1] for p in H3])
+holo_y = Observable([p[2] for p in H3])
+holo_z = Observable([p[3] for p in H3])
 
 # ------------------------------------------------------------
 # Dynamic cone circle
 # ------------------------------------------------------------
 
-circle_x = Observable([p[1]for p in circle0])
-circle_y = Observable([p[2]for p in circle0])
-circle_z = Observable([p[3]for p in circle0])
+circle_x = Observable([p[1] for p in circle])
+circle_y = Observable([p[2] for p in circle])
+circle_z = Observable([p[3] for p in circle])
 
 # ============================================================
 # Figure
@@ -110,65 +110,31 @@ on(n_slider.value) do n
     # Holomorphic transform
     # --------------------------------------------------------
 
-    trans =
-        HolomorphicTransform(
-            conn,
-            n
-        )
+    trans = HolomorphicTransform2(conn,n)
 
-    trans_x[] = [
-        z.re
-        for z in trans
-    ]
+    trans_x[] = [z.re for z in trans]
 
-    trans_y[] = [
-        z.im
-        for z in trans
-    ]
+    trans_y[] = [z.im for z in trans]
 
     # --------------------------------------------------------
     # Lift to sphere
     # --------------------------------------------------------
 
-    H3, circle =
-        Holomorph3(
-            conn,
-            n
-        )
+    H3, circle = Holomorph3(conn,n)
 
-    holo_x[] = [
-        p[1]
-        for p in H3
-    ]
+    holo_x[] = [p[1] for p in H3]
 
-    holo_y[] = [
-        p[2]
-        for p in H3
-    ]
+    holo_y[] = [p[2] for p in H3]
 
-    holo_z[] = [
-        p[3]
-        for p in H3
-    ]
+    holo_z[] = [p[3] for p in H3]
 
     # --------------------------------------------------------
     # Cone circle
     # --------------------------------------------------------
 
-    circle_x[] = [
-        p[1]
-        for p in circle
-    ]
-
-    circle_y[] = [
-        p[2]
-        for p in circle
-    ]
-
-    circle_z[] = [
-        p[3]
-        for p in circle
-    ]
+    circle_x[] = [p[1] for p in circle]
+    circle_y[] = [p[2] for p in circle]
+    circle_z[] = [p[3] for p in circle]
 end
 
 display(fig)

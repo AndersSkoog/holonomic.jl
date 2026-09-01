@@ -42,8 +42,6 @@ function bezier_curve(pts,res)
   return [bezier_pt(pts,t) for t in ts]
 end
 
-
-
 # ============================================================
 # Global fiber
 # ============================================================
@@ -136,7 +134,7 @@ end
 # Stereographic projection
 # ============================================================
 
-function StereoProj(v::S2) :: Tuple{ComplexF64,ComplexF64}
+function StereoProj(v::S2)
     x, y, z = v
     ζ = (x + y * im) / (1 - z)
     ξ = (x - y * im) / (1 + z)
@@ -158,8 +156,8 @@ end
 # Random closed sphere curve
 # ============================================================
 
-function random_closed_sphere_curve(n::Int = 360,h::Int = 5) :: Vector{Tuple{Float64,Float64}}
-    t = range(0,2π,length = n + 1)
+function random_closed_sphere_curve(n::Int = 360,h::Int = 5)
+    t = range(0,2π,length = n + 1)[1:n]
     θ = zeros(Float64, n)
     φ = zeros(Float64, n)
     for i in 1:h
@@ -199,6 +197,37 @@ function HolomorphicTransform(conn::SphereConnection,n::Int) :: Vector{ComplexF6
     vals = [abs(p)<=1 ? s*p : 1/conj(s*p) for p in conn.D]
     return [((a*z)+b)/((c*z)+d) for z in vals]
 end
+
+
+function HolomorphicTransform2(conn::SphereConnection,n::Int)
+  li = lastindex(conn.D)
+  Dn = conn.D[n]
+  m = abs2(Dn)
+  dnum = sqrt(1+m)
+  a = 1 / dnum
+  b = Dn / dnum
+  c = -conj(Dn) / dnum
+  d = a
+  ret = ComplexF64[]
+  for ind in 1:li
+    v = conn.D[ind]
+    β = conn.β[ind]
+    x,y = v.re,v.im
+    r = sqrt(x^2+y^2)
+    θ = atan(y,x)
+    s = 1/3
+    p = s * [r*cos(θ),r*sin(θ)]
+    z = Complex(p[1],p[2])
+    out = ((a*z)+b)/((c*z)+d)
+    push!(ret,out)
+  end
+  return ret
+end
+
+
+
+
+
 
 
 # ============================================================
@@ -295,7 +324,7 @@ function ConstructConnection(contacts::Vector{Tuple{Float64, Float64}},k::Int)::
         # ----------------------------------------------------
         # Tangent
         # ----------------------------------------------------
-        T_vec = O_new * @SVector [0.0, 0.0, 0.1]
+        T_vec = O_new * @SVector [0.0, 0.0, 1.0]
         T_n = R3(Dev_new[1],Dev_new[2],T_vec[3])
         # ----------------------------------------------------
         # Complex development coordinate
