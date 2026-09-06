@@ -1,47 +1,24 @@
-fov = sin(pi/5)
-scale = tan(acos(4/5)/2)
-
-O=(0,0,0)
-N=(0,0,1)
-sphere=Sphere(O,1)
-
-r_1 = Slider(-5,5,0.01)
-a_1 = Slider(0,2pi,2pi/360)
-r_2 = Slider(-5,5,0.01)
-a_2 = Slider(0,2pi,2pi/360)
-
-# --- disc samples ---
-px_1 = r_1*cos(a_1)
-py_1 = r_1*sin(a_1)
-z_1 = px_1 + py_1*i
-m_1 = abs(z_1)^2
-
-px_2 = r_2*cos(a_2)
-py_2 = r_2*sin(a_2)
-z_2 = px_2 + py_2*i
-m_2 = abs(z_2)^2
-
-# --- field-of-view scaling ---
-z_2s = scale * (px_2 + py_2*i)
-m_2s = abs(z_2s)^2
-
-# --- Möbius coefs from S_1 ---
-a = 1 / sqrt(1 + m_1)
-b = z_1 / sqrt(1 + m_1)
-c = -conjugate(z_1) / sqrt(1 + m_1)
-d = a
-
-# --- transform scaled point ---
-z_3 = ((a*z_2s)+b)/((c*z_2s)+d)
-m_3 = abs(z_3)^2
-
-S_1 = Point({(2*real(z_1))/(1+m_1),(2*imaginary(z_1))/(1+m_1),(1-m_1)/(1+m_1)})
-S_3 = Point({(2*real(z_3))/(1+m_3),(2*imaginary(z_3))/(1+m_3),(1-m_3)/(1+m_3)})
-
-C = S_1 - (S_1/5)
-Cap=Circle(C,fov,Segment(O,S_1))
-Persp = Cone(O,2S_1,1)
-
+r_{x} = Slider(-10,10,0.1)
+r_{y} = Slider(-10,10,0.1)
+d_{x} = Slider(-10,10,0.1)
+d_{y} = Slider(-10,10,0.1)
+R = r_{x}+r_{y}i
+m=abs(R)^2
+a=1/sqrt(1+m)
+b=R/sqrt(1+m)
+c=-conjugate(R)/sqrt(1+m)
+d=a
+R_{S} = Point({2*real(R)/(1+m),2*imaginary(R)/(1+m),(1-m)/(1+m)})
+R_{ζ} = (x(R_{S}) + y(R_{S})i) / (1 - z(R_{S}))
+R_{ξ} = (x(R_{S}) - y(R_{S})i) / (1 + z(R_{S}))
+D = d_{x}+d_{y}i
+T = ((a*D)+b)/((c*D)+d)
+T_{m}=abs(T)^2
+T_{S}=Point({(2*real(T))/(1+T_{m}),(2*imaginary(T))/(1+T_{m}),(1-T_{m})/(1+T_{m}) })
+C=0.8*R_{S}
+w=sin(pi/5)
+k=Circle(C,w,Segment((0,0,0),R_{S}))
+A=-T_{S}
 
 
 
