@@ -82,19 +82,15 @@ function HopfFibre(v::S2,res::Int=360)
 end
 
 
-function SO3(x::Float64,y::Float64,z::Float64,ang::Float64)
- c,s=cos(ang),sin(ang)
- d=1-c
- return @SMatrix [(c+x^2*d) (x*y*d)-(z*s) (x*z*d)+(y*s);(y*x*d)+(z*s) c+(y^2*d) (y*z*d)-(x*s)]
+function SO3(axis::SVector{3,Float64},ang::Float64)
+  c,s=cos(ang),sin(ang)
+  d=1-c
+  return @SMatrix [(c+x^2*d) (x*y*d)-(z*s) (x*z*d)+(y*s);(y*x*d)+(z*s) c+(y^2*d) (y*z*d)-(x*s)]
 end
 
-function SO3(axis::S2,ang::Float64)
-  return SO3(axis[1],axis[2],axis[3],ang)
-end
-
-function SO3(azi::Float64,polar::Float64,ang::Float64)
+function SO3(azi::Float,polar::Float64,ang::Float64)
   axis=S2(azi,polar)
-  return SO3(axis[1],axis[2],axis[3],ang)
+  return SO3(axis,ang)
 end
 
 function MöbiusRotCoef(v::ComplexF64)
@@ -130,7 +126,7 @@ function TorsionAngle(T1::SVector{3,Float64},T2::SVector{3,Float64},T3::SVector{
   return atan(y, x)
 end
 
-function TorsionAngle(T::Vector{R3},n::Int)::Float64
+function TorsionAngle(T::Vector{SVector{3,Float64}},n::Int)::Float64
   return TorsionAngle(T[n],T[n+1],T[n+2],T[n+3])
 end
 
