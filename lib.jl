@@ -130,6 +130,7 @@ function TorsionAngle(T::Vector{SVector{3,Float64}},n::Int)::Float64
   return TorsionAngle(T[n],T[n+1],T[n+2],T[n+3])
 end
 
+CInv(v::ComplexF64) = abs(v) <= 1.0 ? v : 1 / conj(v)
 
 
 
