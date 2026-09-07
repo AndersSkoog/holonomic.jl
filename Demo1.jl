@@ -28,8 +28,8 @@ zs_dev = zeros(Float64, length(dev_curve))
 # Initial selected transformation
 # ============================================================
 n = 1
-trans =HolomorphicTransform2(conn,n)
-H3,circle =Holomorph3(conn,n)
+trans =HolomorphicTransform(conn,n)
+H3,circle =Holomorph3(trans)
 
 # ------------------------------------------------------------
 # Dynamic transformed-development data
@@ -110,7 +110,7 @@ on(n_slider.value) do n
     # Holomorphic transform
     # --------------------------------------------------------
 
-    trans = HolomorphicTransform2(conn,n)
+    trans = HolomorphicTransform(conn,n)
 
     trans_x[] = [z.re for z in trans]
 
