@@ -8,8 +8,8 @@ const TSU2 = SMatrix{2, 2, ComplexF64, 4}
 const TSE3 = SMatrix{4, 4, Float64, 16}
 const THopfFibre = Vector{TC2}
 const THopfLink = Tuple{THopfFibre,THopfFibre}
-const ISO3::TSO3 = @SMatrix [1 0 0;0 1 0;0 0 1]
-const ISE3::TSE3 = @SMatrix [1 0 0 0;0 1 0 0;0 0 1 0;0 0 0 1]
+const ISO3::TSO3 = @SMatrix[1 0 0;0 1 0;0 0 1]
+const ISE3::TSE3 = @SMatrix[1 0 0 0;0 1 0 0;0 0 1 0;0 0 0 1]
 const default_angles = range(-pi,pi,length=360)
 const CR = sin(pi/5)
 const RA = pi/2
@@ -17,7 +17,7 @@ const RA = pi/2
 Angle(v::Float64,direction::Int) = [clamp(v,-pi,pi),clamp(v,0,2pi)][direction]
 Angle(x::Float64,y::Float64) = angle(Complex(x,y))
 
-function Plane3(azi::Float64,polar::Float64)
+function Plane3(azi::Float64,polar::Float64) :: Tupple{SVector{3,Float64},SVector{3,Float64}}
   u = @SVector [-sin(azi),cos(azi),0.0]
   v = @SVector [-(sin(polar) * cos(azi)),-(sin(polar) * sin(azi)),cos(polar)]
   return u, v
@@ -26,7 +26,7 @@ end
 S1(a::Float64) = TS1(cos(a),sin(a))
 S1(r::Float64,a::Float64) = TS1(r*cos(a),r*sin(a))
 
-function S2(azi::Float64,polar::Float64)
+function S2(azi::Float64,polar::Float64) :: TS2
     pr=sin(polar)
     x=pr*cos(azi)
     y=pr*sin(azi)
@@ -34,7 +34,7 @@ function S2(azi::Float64,polar::Float64)
     return TS2(x,y,z)
 end
 
-function S2(r::Float64,azi::Float64,polar::Float64)
+function S2(r::Float64,azi::Float64,polar::Float64) :: TS2
   pr=sin(polar)
   x=r*pr*cos(azi)
   y=r*pr*sin(azi)
@@ -42,7 +42,7 @@ function S2(r::Float64,azi::Float64,polar::Float64)
   return TS2(x,y,z)
 end
 
-function S3(azi::Float64,polar::Float64,orb::Float64)
+function S3(azi::Float64,polar::Float64,orb::Float64) :: TC2
   z1=Complex(cos(orb),sin(orb))*cos(azi/2)
   z2=Complex(cos(orb-polar),sin(orb-polar))*sin(azi/2)
   return TC2(z1,z2)
@@ -55,7 +55,7 @@ function S3_R3(p::TC2) :: TR3
   return TR3(x,y,z)
 end
 
-function S3_R3(azi::Float65,polar::Float64,orb::Float64) :: TR3
+function S3_R3(azi::Float64,polar::Float64,orb::Float64) :: TR3
   z1,z2 = S3(azi,polar,orb)
   return S3_R3(TC2(z1,z2))
 end
@@ -89,10 +89,10 @@ function SO3(axis::SVector{3,Float64},ang::Float64) :: TSO3
   x,y,z=axis[1],axis[2],axis[3]
   c,s=cos(ang),sin(ang)
   d=1-c
-  return @SMatrix [(c+x^2*d) (x*y*d)-(z*s) (x*z*d)+(y*s);(y*x*d)+(z*s) c+(y^2*d) (y*z*d)-(x*s)]
+  return @SMatrix[(c+x^2*d) (x*y*d)-(z*s) (x*z*d)+(y*s);(y*x*d)+(z*s) c+(y^2*d) (y*z*d)-(x*s)]
 end
 
-function SO3(azi::Float,polar::Float64,ang::Float64) :: TSO2
+function SO3(azi::Float64,polar::Float64,ang::Float64) :: TSO2
   axis=S2(azi,polar)
   return SO3(axis,ang)
 end
@@ -115,15 +115,15 @@ function ConeCircle(azi::Float64,polar::Float64,res::Int = 360) :: Vector{TS2}
   ts=res==360 ? default_angles : range(0,2π,length=res)
   u,v = Plane3(azi,polar)
   c=0.8*S2(azi,polar)
-  return [@SVector c+CR*cos(t)*u+CR*sin(t)*v for t in ts]
+  return [c+CR*cos(t)*u+CR*sin(t)*v for t in ts]
 end
 
-function ConeCircle(p::S2,angles:Vector{Float64}) :: Vector{TS2}
+function ConeCircle(p::TS2,angles::Vector{Float64}) :: Vector{TS2}
  azi=Angle(p[1],p[2])
  pol=acos(p[3])
  u,v = Plane3(azi,pol)
  c = 0.8*p
- return [@SVector c+CR*cos(t)*u+CR*sin(t)*v for t in angles]
+ return [c+CR*cos(t)*u+CR*sin(t)*v for t in angles]
 end
 
 function TorsionAngle(T1::SVector{3,Float64},T2::SVector{3,Float64},T3::SVector{3,Float64},T4::SVector{3,Float64}) :: Float64
@@ -154,13 +154,13 @@ function HopfFibre(azi::Float64,polar::Float64,res::Int=360) :: THopfFibre
   return THopfFibre([TC2(az,polar,t) for t in ts])
 end
 
-HopfFibre(v::S2,res::Int=360) = HopfFibre(Angle(v[1],v[2]),acos(v[3]),res) :: THopfFibre
-HopfLink(a::S2,b::S2,res::Int=360) = THopfLink(HopfFibre(a,res),HopfFibre(b,res)) :: THopfLink
-HopfLink(a::S2,tor::Float64,res::Int=360) = THopfLink(HopfFibre(a,res),HopfFibre(SO3(a,tor)*a,res)) :: THopfLink
+HopfFibre(v::TS2,res::Int=360) = HopfFibre(Angle(v[1],v[2]),acos(v[3]),res) :: THopfFibre
+HopfLink(a::TS2,b::TS2,res::Int=360) = THopfLink(HopfFibre(a,res),HopfFibre(b,res)) :: THopfLink
+HopfLink(a::TS2,tor::Float64,res::Int=360) = THopfLink(HopfFibre(a,res),HopfFibre(SO3(a,tor)*a,res)) :: THopfLink
 
 
-function SE3(m::SO3,p::SVector{3,Float64}) :: TSE3
-  return @SMatrix{4,Float64,16} [m[1,1] m[1,2] m[1,3] p[1]; m[2,1] m[2,2] m[2,3] p[2]; m[3,1] m[3,2] m[3,3] p[3]; 0 0 0 1]
+function SE3(m::TSO3,p::SVector{3,Float64}) :: TSE3
+  return TSE3([m[1,1] m[1,2] m[1,3] p[1]; m[2,1] m[2,2] m[2,3] p[2]; m[3,1] m[3,2] m[3,3] p[3]; 0 0 0 1])
 end
 
 function ΔO(C1::SVector{2,Float64},C2::SVector{2,Float64}) :: TSO3
@@ -183,11 +183,11 @@ end
 
 adjpairs(coll,k) = map(ip-> (coll[ip[1]],coll[ip[2]]),adjrange(k,lastindex(arr)))
 
-function ΔO(C1::SVector{2,Float64},C2::SVector{2,Float64}) :: TSO3
-  VC1 = S2(C1[1],C1[2])
-  VC2 = S2(C2[1],C2[2])
-  h=@SVector normalize(cross(VC1,VC2))
-  psi=acos(dot(VC1,VC2))
+function ΔO(c2::SVector{2,Float64},c1::SVector{2,Float64}) :: TSO3
+  VC1 = S2(c1[1],c1[2])
+  VC2 = S2(c2[1],c2[2])
+  h=@SVector normalize(cross(Vc1,Vc2))
+  psi=acos(dot(Vc1,Vc2))
   return SO3(h,psi)
 end
 
