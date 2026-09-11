@@ -126,8 +126,6 @@ function ConeCircle(p::S2,angles:Vector{Float64})
  return [@SVector c+CR*cos(t)*u+CR*sin(t)*v for t in angles]
 end
 
-
-
 function TorsionAngle(T1::SVector{3,Float64},T2::SVector{3,Float64},T3::SVector{3,Float64},T4::SVector{3,Float64})
   d1 = T2-T1
   d2 = T3-T2
@@ -229,3 +227,16 @@ function sphere_curve(a1::Vector{Float64},a2::Vector{Float64},b1::Vector{Float64
 end
 
 CInv(v::ComplexF64) = abs(v) <= 1.0 ? v : 1 / conj(v)
+
+function xyz(curve::Vector{S2}) :: Tuple{Vector{Float64},Vector{Float64},Vector{Float64}}
+  x = [p[1] for p in curve]
+  y = [p[2] for p in curve]
+  z = [p[3] for p in curve]
+  return x, y, z
+end
+
+
+
+
+
+
