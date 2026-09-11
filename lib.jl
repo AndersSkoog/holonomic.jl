@@ -18,8 +18,8 @@ Angle(v::Float64,direction::Int) = [clamp(v,-pi,pi),clamp(v,0,2pi)][direction]
 Angle(x::Float64,y::Float64) = angle(Complex(x,y))
 
 function Plane3(azi::Float64,polar::Float64)
-  u = @SVector [-sin(azi),cos(azi),0]
-  v = @SVector [-(sin(polar) * cos(azi)),-(sin(polar) * sin(azi)),cos(polar))
+  u = @SVector [-sin(azi),cos(azi),0.0]
+  v = @SVector [-(sin(polar) * cos(azi)),-(sin(polar) * sin(azi)),cos(polar)]
   return u, v
 end
 
@@ -48,19 +48,19 @@ function S3(azi::Float64,polar::Float64,orb::Float64)
   return TC2(z1,z2)
 end
 
-function S3_R3(p::TC2)
+function S3_R3(p::TC2) :: TR3
   z1,z2 = p[1],p[2]
   d=1-z2.im
   x,y,z=(2*z1.re)/d,(2*z1.im)/d,(2*z2.re)/d
   return TR3(x,y,z)
 end
 
-function S3_R3(azi::Float65,polar::Float64,orb::Float64)
+function S3_R3(azi::Float65,polar::Float64,orb::Float64) :: TR3
   z1,z2 = S3(azi,polar,orb)
   return S3_R3(TC2(z1,z2))
 end
 
-function StereoProj(x::Float64,y::Float64,z::Float64) :: ComplexF64
+function StereoProj(x::Float64,y::Float64,z::Float64) :: Tupple{ComplexF64,ComplexF64}
   ζ = (x + y * im) / (1 - z)
   ξ = (x - y * im) / (1 + z)
   return ζ,ξ
@@ -85,19 +85,19 @@ function InvStereoProj(v::ComplexF64) :: TS2
 end
 
 
-function SO3(axis::SVector{3,Float64},ang::Float64)
+function SO3(axis::SVector{3,Float64},ang::Float64) :: TSO3
   x,y,z=axis[1],axis[2],axis[3]
   c,s=cos(ang),sin(ang)
   d=1-c
   return @SMatrix [(c+x^2*d) (x*y*d)-(z*s) (x*z*d)+(y*s);(y*x*d)+(z*s) c+(y^2*d) (y*z*d)-(x*s)]
 end
 
-function SO3(azi::Float,polar::Float64,ang::Float64)
+function SO3(azi::Float,polar::Float64,ang::Float64) :: TSO2
   axis=S2(azi,polar)
   return SO3(axis,ang)
 end
 
-function MöbiusRotCoef(v::ComplexF64)
+function MöbiusRotCoef(v::ComplexF64) :: Tupple{ComplexF64,ComplexF64,ComplexF64,ComplexF64}
   m =abs2(v)
   dn=sqrt(1+m)
   a,b,c=1/dn,v/dn,-conj(v)/dn
@@ -105,20 +105,20 @@ function MöbiusRotCoef(v::ComplexF64)
   return a,b,c,d
 end
 
-function HolomorphicTransform(dev::Vector{ComplexF64},n::Int)
+function HolomorphicTransform(dev::Vector{ComplexF64},n::Int) :: Vector{ComplexF64}
   ref = dev[n]
   a,b,c,d = MöbiusRotCoef(ref)
   return [((a*z)+b)/((c*z)+d) for z in conn.D]
 end
 
-function ConeCircle(azi::Float64,polar::Float64,res::Int = 360)
+function ConeCircle(azi::Float64,polar::Float64,res::Int = 360) :: Vector{TS2}
   ts=res==360 ? default_angles : range(0,2π,length=res)
   u,v = Plane3(azi,polar)
   c=0.8*S2(azi,polar)
   return [@SVector c+CR*cos(t)*u+CR*sin(t)*v for t in ts]
 end
 
-function ConeCircle(p::S2,angles:Vector{Float64})
+function ConeCircle(p::S2,angles:Vector{Float64}) :: Vector{TS2}
  azi=Angle(p[1],p[2])
  pol=acos(p[3])
  u,v = Plane3(azi,pol)
@@ -126,7 +126,7 @@ function ConeCircle(p::S2,angles:Vector{Float64})
  return [@SVector c+CR*cos(t)*u+CR*sin(t)*v for t in angles]
 end
 
-function TorsionAngle(T1::SVector{3,Float64},T2::SVector{3,Float64},T3::SVector{3,Float64},T4::SVector{3,Float64})
+function TorsionAngle(T1::SVector{3,Float64},T2::SVector{3,Float64},T3::SVector{3,Float64},T4::SVector{3,Float64}) :: Float64
   d1 = T2-T1
   d2 = T3-T2
   d3 = T4-T3
@@ -149,21 +149,21 @@ function TorsionAngle(T::Vector{SVector{3,Float64}},n::Int)::Float64
 end
 
 
-function HopfFibre(azi::Float64,polar::Float64,res::Int=360)
+function HopfFibre(azi::Float64,polar::Float64,res::Int=360) :: THopfFibre
   ts=res==360 ? default_angles : range(-pi,pi,length=res)
   return THopfFibre([TC2(az,polar,t) for t in ts])
 end
 
-HopfFibre(v::S2,res::Int=360) = HopfFibre(Angle(v[1],v[2]),acos(v[3]),res)
-HopfLink(a::S2,b::S2,res::Int=360) = THopfLink(HopfFibre(a,res),HopfFibre(b,res))
-HopfLink(a::S2,tor::Float64,res::Int=360) = THopfLink(HopfFibre(a,res),HopfFibre(SO3(a,tor)*a,res))
+HopfFibre(v::S2,res::Int=360) = HopfFibre(Angle(v[1],v[2]),acos(v[3]),res) :: THopfFibre
+HopfLink(a::S2,b::S2,res::Int=360) = THopfLink(HopfFibre(a,res),HopfFibre(b,res)) :: THopfLink
+HopfLink(a::S2,tor::Float64,res::Int=360) = THopfLink(HopfFibre(a,res),HopfFibre(SO3(a,tor)*a,res)) :: THopfLink
 
 
-function SE3(m::SO3,p::SVector{3,Float64})
+function SE3(m::SO3,p::SVector{3,Float64}) :: TSE3
   return @SMatrix{4,Float64,16} [m[1,1] m[1,2] m[1,3] p[1]; m[2,1] m[2,2] m[2,3] p[2]; m[3,1] m[3,2] m[3,3] p[3]; 0 0 0 1]
 end
 
-function ΔO(C1::SVector{2,Float64},C2::SVector{2,Float64})
+function ΔO(C1::SVector{2,Float64},C2::SVector{2,Float64}) :: TSO3
   VC1 = S2(C1[1],C1[2])
   VC2 = S2(C2[1],C2[2])
   h=@SVector normalize(cross(VC1,VC2))
@@ -171,7 +171,7 @@ function ΔO(C1::SVector{2,Float64},C2::SVector{2,Float64})
   return SO3(normalize(cross(p[1],p[2])),acos(dot(p[1],p[2])))
 end
 
-function ΔP(O::TSO3,psi::Float64)
+function ΔP(O::TSO3,psi::Float64) :: TR3
   vec = @SVector [O[3,1],O[3,2],O[3,3]]
   return (psi / normalize(vec)) * vec
 end
@@ -183,7 +183,7 @@ end
 
 adjpairs(coll,k) = map(ip-> (coll[ip[1]],coll[ip[2]]),adjrange(k,lastindex(arr)))
 
-function ΔO(C1::SVector{2,Float64},C2::SVector{2,Float64})
+function ΔO(C1::SVector{2,Float64},C2::SVector{2,Float64}) :: TSO3
   VC1 = S2(C1[1],C1[2])
   VC2 = S2(C2[1],C2[2])
   h=@SVector normalize(cross(VC1,VC2))
@@ -191,13 +191,8 @@ function ΔO(C1::SVector{2,Float64},C2::SVector{2,Float64})
   return SO3(h,psi)
 end
 
-function ΔP(O::TSO3,psi::Float64)
-  vec = @SVector [O[3,1],O[3,2],O[3,3]]
-  return (psi / normalize(vec)) * vec
-end
-
-function fourier_series(a::Vector{Float64},b::Vector{Float64},angles::Vector{Float64})
-  li = lastindex(cA)
+function fourier_series(a::Vector{Float64},b::Vector{Float64},angles::Vector{Float64}) :: Vector{Float64}
+  li = lastindex(cA)W
   tau = 2pi
   if li == 0
     throw(ErrorException("coef lists cannot be empty"))
@@ -213,8 +208,8 @@ function fourier_series(a::Vector{Float64},b::Vector{Float64},angles::Vector{Flo
   return out
 end
 
-function sphere_curve(a1::Vector{Float64},a2::Vector{Float64},b1::Vector{Float64},b2::Vector{Float64},angles::Vector{Float64})
- harms = lastindex(a1)
+function sphere_curve(a1::Vector{Float64},a2::Vector{Float64},b1::Vector{Float64},b2::Vector{Float64},angles::Vector{Float64}) Vector{SVector{2,Float64}}
+ harms = lastindex(a1)S
  if hams == 0
    throw(ErrorException("coef list cannot be empty"))
  end
@@ -227,13 +222,6 @@ function sphere_curve(a1::Vector{Float64},a2::Vector{Float64},b1::Vector{Float64
 end
 
 CInv(v::ComplexF64) = abs(v) <= 1.0 ? v : 1 / conj(v)
-
-function xyz(curve::Vector{S2}) :: Tuple{Vector{Float64},Vector{Float64},Vector{Float64}}
-  x = [p[1] for p in curve]
-  y = [p[2] for p in curve]
-  z = [p[3] for p in curve]
-  return x, y, z
-end
 
 
 
