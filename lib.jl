@@ -1,3 +1,5 @@
+const TAngle = Float64
+const TC1  = ComplexF64
 const TS1  = SVector{2, Float64}
 const TS2  = SVector{3, Float64}
 const TR3  = SVector{3, Float64}
@@ -8,25 +10,26 @@ const TSU2 = SMatrix{2, 2, ComplexF64, 4}
 const TSE3 = SMatrix{4, 4, Float64, 16}
 const THopfFibre = Vector{TC2}
 const THopfLink = Tuple{THopfFibre,THopfFibre}
+const TPlane3 = Tuple{SVector{3,Float64},SVector{3,Float64}}
 const ISO3::TSO3 = @SMatrix[1 0 0;0 1 0;0 0 1]
 const ISE3::TSE3 = @SMatrix[1 0 0 0;0 1 0 0;0 0 1 0;0 0 0 1]
-const default_angles = range(-pi,pi,length=360)
+const Angles :: Vector{TAngle} = collect(range(-pi,pi,length=360))
+
 const CR = sin(pi/5)
-const RA = pi/2
+const RA::TAngle = pi/2
 
-Angle(v::Float64,direction::Int) = [clamp(v,-pi,pi),clamp(v,0,2pi)][direction]
-Angle(x::Float64,y::Float64) = angle(Complex(x,y))
-
-function Plane3(azi::Float64,polar::Float64) :: Tupple{SVector{3,Float64},SVector{3,Float64}}
+Angle(v::Float64) = clamp(v,-pi,pi) :: TAngle
+Angle(x::Float64,y::Float64) = angle(Complex(x,y)) :: TAngle
+function Plane3(azi::TAngle,polar::TAngle) :: TPlane3
   u = @SVector [-sin(azi),cos(azi),0.0]
   v = @SVector [-(sin(polar) * cos(azi)),-(sin(polar) * sin(azi)),cos(polar)]
   return u, v
 end
 
-S1(a::Float64) = TS1(cos(a),sin(a))
-S1(r::Float64,a::Float64) = TS1(r*cos(a),r*sin(a))
+S1(a::TAngle) = TS1(cos(a),sin(a))
+S1(r::Float64,a::TAngle) = TS1(r*cos(a),r*sin(a))
 
-function S2(azi::Float64,polar::Float64) :: TS2
+function S2(azi::TAngle,polar::TAngle) :: TS2
     pr=sin(polar)
     x=pr*cos(azi)
     y=pr*sin(azi)
@@ -111,14 +114,13 @@ function HolomorphicTransform(dev::Vector{ComplexF64},n::Int) :: Vector{ComplexF
   return [((a*z)+b)/((c*z)+d) for z in conn.D]
 end
 
-function ConeCircle(azi::Float64,polar::Float64,res::Int = 360) :: Vector{TS2}
-  ts=res==360 ? default_angles : range(0,2π,length=res)
+function ConeCircle(azi::Float64,polar::Float64,angles::Vector{TAngle}=Angles) :: Vector{TS2}
   u,v = Plane3(azi,polar)
   c=0.8*S2(azi,polar)
-  return [c+CR*cos(t)*u+CR*sin(t)*v for t in ts]
+  return [c+CR*cos(t)*u+CR*sin(t)*v for t in angles]
 end
 
-function ConeCircle(p::TS2,angles::Vector{Float64}) :: Vector{TS2}
+function ConeCircle(p::TS2,angles::Vector{TAngle}) :: Vector{TS2}
  azi=Angle(p[1],p[2])
  pol=acos(p[3])
  u,v = Plane3(azi,pol)
@@ -150,7 +152,7 @@ end
 
 
 function HopfFibre(azi::Float64,polar::Float64,res::Int=360) :: THopfFibre
-  ts=res==360 ? default_angles : range(-pi,pi,length=res)
+  ts=res==360 ? Angles : range(-pi,pi,length=res)
   return THopfFibre([TC2(az,polar,t) for t in ts])
 end
 
@@ -166,59 +168,85 @@ end
 function ΔO(C1::SVector{2,Float64},C2::SVector{2,Float64}) :: TSO3
   VC1 = S2(C1[1],C1[2])
   VC2 = S2(C2[1],C2[2])
-  h=@SVector normalize(cross(VC1,VC2))
+  h=normalize(cross(VC1,VC2))
   psi=acos(dot(VC1,VC2))
   return SO3(normalize(cross(p[1],p[2])),acos(dot(p[1],p[2])))
 end
 
 function ΔP(O::TSO3,psi::Float64) :: TR3
-  vec = @SVector [O[3,1],O[3,2],O[3,3]]
+  vec = TR3([O[3,1],O[3,2],O[3,3]])
   return (psi / normalize(vec)) * vec
 end
 
 
-function adjrange(k::Int,li::Int)::Vector{Tuple(Int,Int)}
+function adjrange(k::Int,li::Int)::Vector{Tuple{Int,Int}}
   return [(mod1(n,li),mod1(n+1,li)) for n in 1:k]
 end
 
-adjpairs(coll,k) = map(ip-> (coll[ip[1]],coll[ip[2]]),adjrange(k,lastindex(arr)))
+function adjpairs(coll::Vector{TS2}, k::Int) :: Vector{Tuple{TS2,TS2}}
+  return map(ip-> (coll[ip[1]],coll[ip[2]]),adjrange(k,lastindex(coll)))
+end
+
+function adjpairs(coll::Vector{TSO3},k::Int) :: Vector{Tuple{TSO3,TSO3}}
+  return map(ip-> (coll[ip[1]],coll[ip[2]]),adjrange(k,lastindex(coll)))
+end
+
+function adjpairs(coll::Vector{TR3}, k::Int) :: Vector{Tuple{TR3,TR3}}
+  return map(ip-> (coll[ip[1]],coll[ip[2]]),adjrange(k,lastindex(coll)))
+end
+
+function adjpairs(coll::Vector{TC2}, k::Int) :: Vector{Tuple{TC2,TC2}}
+  return map(ip-> (coll[ip[1]],coll[ip[2]]),adjrange(k,lastindex(coll)))
+end
+
+function adjpairs(coll::Vector{TC1}, k::Int) :: Vector{Tuple{TC1,TC1}}
+  return map(ip-> (coll[ip[1]],coll[ip[2]]),adjrange(k,lastindex(coll)))
+end
+
+function adjpairs(coll::Vector{Float64}, k::Int) :: Vector{Tuple{Float64,Float64}}
+  return map(ip-> (coll[ip[1]],coll[ip[2]]),adjrange(k,lastindex(coll)))
+end
+
+
 
 function ΔO(c2::SVector{2,Float64},c1::SVector{2,Float64}) :: TSO3
-  VC1 = S2(c1[1],c1[2])
-  VC2 = S2(c2[1],c2[2])
-  h=@SVector normalize(cross(Vc1,Vc2))
+  Vc1 = S2(c1[1],c1[2])
+  Vc2 = S2(c2[1],c2[2])
+  h=normalize(cross(Vc1,Vc2))
   psi=acos(dot(Vc1,Vc2))
   return SO3(h,psi)
 end
 
-function fourier_series(a::Vector{Float64},b::Vector{Float64},angles::Vector{Float64}) :: Vector{Float64}
-  li = lastindex(cA)W
+function fourier_series(a::Vector{Float64},b::Vector{Float64}) :: Vector{Float64}
+  li = lastindex(a)
   tau = 2pi
   if li == 0
     throw(ErrorException("coef lists cannot be empty"))
   end
-  if li != lastindex(cB)
+  if li != lastindex(b)
     throw(ErrorException("coef lists must be of equal size"))
   end
-  res = lastindex(angles)
-  out = zeroes(Float64,res)
+  #res = lastindex(angles)
+  out = zeros(Float64,360)
   for h in 1:li
-    out .+= (a[h] .* cos.(angles .* h) .+ (b[h] .* sin.(angles .* h)))
+    out .+= (a[h] .* cos.(Angles .* h) .+ (b[h] .* sin.(Angles .* h)))
   end
   return out
 end
 
-function sphere_curve(a1::Vector{Float64},a2::Vector{Float64},b1::Vector{Float64},b2::Vector{Float64},angles::Vector{Float64}) Vector{SVector{2,Float64}}
- harms = lastindex(a1)S
- if hams == 0
+function sphere_curve(a1::Vector{Float64},a2::Vector{Float64},b1::Vector{Float64},b2::Vector{Float64}) :: Vector{Tuple{TAngle,TAngle}}
+ harms = lastindex(a1)
+ if harms == 0
    throw(ErrorException("coef list cannot be empty"))
  end
- if !allequal(lastinex,[a1,a2,b1,b2])
+ if !allequal(lastindex,[a1,a2,b1,b2])
    throw(ErrorException("coef lists cannot be empty"))
  end
- azi = fourier_series(a1,a2,angles)
- pol = fourier_series(b1,b2,angles)
- return [@SVector [v[1],v[2]] v for in zip(azi,pol)]
+ azi = fourier_series(a1,a2)
+ pol = fourier_series(b1,b2)
+ #print(azi)
+ #print(pol)
+ return [(azi[n],pol[n]) for n in 1:360]
 end
 
 CInv(v::ComplexF64) = abs(v) <= 1.0 ? v : 1 / conj(v)

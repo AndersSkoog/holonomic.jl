@@ -1,3 +1,9 @@
+using StaticArrays
+using LinearAlgebra
+using Random
+using GLMakie
+using Purses
+include("lib.jl")
 coef_a1 = [0.72,0.12,0.47,0.92]
 coef_a2 = [0.24,0.25,0.05,0.24]
 coef_b1 = [0.11,0.83,0.33,0.55]
@@ -17,11 +23,13 @@ conn_tor = Purse([[conn_pos[n][1],conn_pos[n][2],(conn_orient[n] * @SVector[0.0,
 conn_torang = Purse([TorsionAngle(conn_tor[n][1],conn_tor[n+1],conn_tor[n+2],conn_tor[n+3]) for n in 1:357])
 refS = Purse(InvStereoProj.(conn_dev[1:360]))
 circ = Purse(ConeCircle.(refS[1:360],angles_360[1:360]))
-#holom2 = Purse([HolomorphicTransform(conn_dev[1][n],n) for n in 1:360])
-#holom3 = Purse([-InvStereoProj.(curve) for curve in holom2[1]]))
-#holom4_V1 = Purse([HopfFibre.(curve) for curve in holom3[1]])
-#holom4_V2 = Purse([HopfLink.(holom3[1][n],conn_torang[1][n]) for n in 1:357)])
-#proj_holom4_V1 = Purse([S3_R3.(fibre) for fibre in holom4_V1[1]])
-#proj_holom4_V2 = Purse([S3_R3.(fibre) for fibre in holom4_V1[1]])
-
-
+print(lastindex(psi))
+print(lastindex(conn_delta_orient))
+print(lastindex(conn_orient))
+print(lastindex(conn_delta_pos))
+print(lastindex(conn_pos))
+print(lastindex(conn_dev))
+print(lastindex(conn_tor))
+print(lastindex(conn_torang))
+print(lastindex(refS))
+print(lastindex(circ))

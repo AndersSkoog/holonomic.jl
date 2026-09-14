@@ -9,19 +9,24 @@ include("cached.jl")
 sel_n = 1
 sel_j = 1
 zeros = zeros(Float64,length(360))
-contact_x = getindex.(contact_pts,1)
-contact_y = getindex.(contact_pts,2)
-contact_z = getindex.(contact_pts,3)
-dev_x = real.(conn_dev)
-dev_y = imag.(conn_dev)
-holom2_x = Observable.(real.(holom2[1][sel_n]))
-holom2_y = Observable.(imag.(holom2[1][sel_n]))
-holom3_x = Observable.(getindex.(holom3[1][sel_n],1))
-holom3_y = Observable.(getindex.(holom3[1][sel_n],2))
-holom3_z = Observable.(getindex.(holom3[1][sel_n],3))
-circ_x = Observable.(getindex.(circ[1][sel_n],1))
-circ_y = Observable.(getindex.(circ[1][sel_n],1))
-circ_z = Observable.(getindex.(circ[1][sel_n],1))
+contact_x = getindex.(contact_pts[1],1)
+contact_y = getindex.(contact_pts[1],2)
+contact_z = getindex.(contact_pts[1],3)
+dev_x = real.(conn_dev[1])
+dev_y = imag.(conn_dev[1])
+sel_S = refS[1][sel_n]
+sel_C = 0.8*sel_S
+sel_circ = circ[1][sel_n]
+sel_holom2 = HolomorphicTransform(conn_dev[1],sel_n)
+sel_holom3 = -InvStereoProj.(sel_holom2)
+holom2_x = Observable.(real.(sel_holom2))
+holom2_y = Observable.(imag.(sel_holom2))
+holom3_x = Observable.(getindex.(sel_holom3,1))
+holom3_y = Observable.(getindex.(sel_holom3,2))
+holom3_z = Observable.(getindex.(sel_holom3,3))
+circ_x = Observable.(getindex.(sel_circ,1))
+circ_y = Observable.(getindex.(sel_circ,2))
+circ_z = Observable.(getindex.(sel_circ,3))
 
 fig = Figure(size = (1600, 850))
 Label(fig[1, 1],"Contact curve",fontsize = 20)
@@ -55,14 +60,17 @@ scatter!(ax_dev,lift(n -> Point3f(dev_x[n],dev_y[n],zeros[n]),n_slider.value),co
 # ============================================================
 on(n_slider.value) do n
   sel_n = n
-  holom2_x = Observable.(real.(holom2[1][sel_n]))
-  holom2_y = Observable.(imag.(holom2[1][sel_n]))
-  holom3_x = Observable.(getindex.(holom3[1][sel_n],1))
-  holom3_y = Observable.(getindex.(holom3[1][sel_n],2))
-  holom3_z = Observable.(getindex.(holom3[1][sel_n],3))
-  circ_x = Observable.(getindex.(circ[1][sel_n],1))
-  circ_y = Observable.(getindex.(circ[1][sel_n],1))
-  circ_z = Observable.(getindex.(circ[1][sel_n],1))
+  sel_holom2[] = HolomorphicTransform(conn_dev[1],sel_n)
+  sel_holom3[] = -InvStereoProj.(sel_holom2)
+  holom2_x[] = real.(sel_holom2)
+  holom2_y[] = imag.(sel_holom2)
+  holom3_x[] = getindex.(sel_holom3,1)
+  holom3_y[] = getindex.(sel_holom3,2)
+  holom3_z[] = getindex.(sel_holom3,3)
+  circ_x[] = getindex.(sel_circ,1)
+  circ_y[] = getindex.(sel_circ,2)
+  circ_z[] = getindex.(sel_circ,3)
+
 end
 
 display(fig)
